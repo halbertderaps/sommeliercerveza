@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Sommelier de Cervezas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C8973A;
+    --amber: #8B4513;
+    --dark: #0D0A07;
+    --dark2: #1A1208;
+    --dark3: #241A0E;
+    --cream: #F5EDD8;
+    --text: #D4C4A0;
+    --text-dim: #8A7A5A;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--dark); color:var(--text); font-family:'Crimson Pro',Georgia,serif; min-height:100vh; overflow-x:hidden; }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background: radial-gradient(ellipse at 20% 20%,rgba(200,151,58,.07) 0%,transparent 50%),
+                radial-gradient(ellipse at 80% 80%,rgba(139,69,19,.1) 0%,transparent 50%);
+    pointer-events:none; z-index:0;
+  }
+  .container { position:relative; z-index:1; max-width:680px; margin:0 auto; padding:0 20px 60px; }
+
+  /* Header */
+  .header { text-align:center; padding:50px 0 40px; border-bottom:1px solid rgba(200,151,58,.2); margin-bottom:40px; }
+  .header-icon { font-size:2.8rem; margin-bottom:12px; display:block; filter:drop-shadow(0 0 12px rgba(200,151,58,.4)); }
+  .header h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,6vw,3rem); font-weight:900; color:var(--gold); letter-spacing:.02em; line-height:1.1; text-shadow:0 2px 20px rgba(200,151,58,.3); }
+  .header p { margin-top:10px; font-size:1.05rem; color:var(--text-dim); font-style:italic; letter-spacing:.05em; }
+
+  /* Progress */
+  .progress-container { margin-bottom:32px; }
+  .progress-info { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+  .progress-label { font-size:.8rem; color:var(--text-dim); letter-spacing:.1em; text-transform:uppercase; }
+  .progress-count { font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--gold); }
+  .progress-bar { height:3px; background:rgba(200,151,58,.15); border-radius:2px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--amber),var(--gold)); border-radius:2px; transition:width .5s cubic-bezier(.4,0,.2,1); box-shadow:0 0 8px rgba(200,151,58,.5); }
+
+  /* Question card */
+  .question-card { background:var(--dark2); border:1px solid rgba(200,151,58,.15); border-radius:2px; padding:36px 32px; position:relative; overflow:hidden; animation:slideIn .4s cubic-bezier(.4,0,.2,1); }
+  .question-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+  @keyframes slideIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  .question-number { font-size:.72rem; color:var(--gold); letter-spacing:.18em; text-transform:uppercase; margin-bottom:14px; }
+  .question-text { font-family:'Playfair Display',serif; font-size:clamp(1.3rem,3.5vw,1.7rem); font-weight:700; color:var(--cream); line-height:1.3; margin-bottom:8px; }
+  .question-hint { font-size:.92rem; color:var(--text-dim); font-style:italic; margin-bottom:28px; line-height:1.5; }
+
+  /* Options */
+  .options { display:flex; flex-direction:column; gap:10px; }
+  .option-btn { background:var(--dark3); border:1px solid rgba(200,151,58,.12); border-radius:2px; padding:14px 20px; color:var(--text); font-family:'Crimson Pro',serif; font-size:1.05rem; cursor:pointer; text-align:left; transition:all .25s ease; display:flex; align-items:center; gap:14px; position:relative; overflow:hidden; }
+  .option-btn::before { content:''; position:absolute; left:0; top:0; bottom:0; width:0; background:linear-gradient(90deg,rgba(200,151,58,.12),transparent); transition:width .3s ease; }
+  .option-btn:hover::before { width:100%; }
+  .option-btn:hover { border-color:rgba(200,151,58,.4); color:var(--cream); transform:translateX(4px); }
+  .option-btn.selected { border-color:var(--gold); background:rgba(200,151,58,.08); color:var(--cream); }
+  .option-btn.selected::before { width:100%; }
+  .option-emoji { font-size:1.3rem; width:28px; text-align:center; flex-shrink:0; position:relative; z-index:1; }
+  .option-text { position:relative; z-index:1; }
+  .option-label { display:block; font-weight:600; margin-bottom:1px; }
+  .option-sub { font-size:.82rem; color:var(--text-dim); font-style:italic; }
+
+  /* Text input */
+  .text-input { width:100%; background:var(--dark3); border:1px solid rgba(200,151,58,.2); border-radius:2px; padding:14px 18px; color:var(--cream); font-family:'Crimson Pro',serif; font-size:1.05rem; outline:none; transition:border-color .25s; }
+  .text-input:focus { border-color:var(--gold); }
+  .text-input::placeholder { color:var(--text-dim); font-style:italic; }
+
+  /* Nav */
+  .nav { display:flex; justify-content:space-between; align-items:center; margin-top:28px; gap:12px; }
+  .btn-back { background:transparent; border:1px solid rgba(200,151,58,.2); border-radius:2px; padding:12px 20px; color:var(--text-dim); font-family:'Crimson Pro',serif; font-size:1rem; cursor:pointer; transition:all .2s; }
+  .btn-back:hover { border-color:rgba(200,151,58,.4); color:var(--text); }
+  .btn-next { background:linear-gradient(135deg,var(--amber),var(--gold)); border:none; border-radius:2px; padding:14px 32px; color:var(--dark); font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; cursor:pointer; letter-spacing:.05em; transition:all .25s ease; flex:1; max-width:260px; box-shadow:0 4px 20px rgba(200,151,58,.25); }
+  .btn-next:hover:not(:disabled) { box-shadow:0 6px 28px rgba(200,151,58,.45); transform:translateY(-1px); }
+  .btn-next:disabled { opacity:.35; cursor:not-allowed; transform:none; }
+
+  /* Results */
+  .results { animation:fadeIn .5s ease; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  .results-header { text-align:center; margin-bottom:36px; }
+  .results-header h2 { font-family:'Playfair Display',serif; font-size:clamp(1.6rem,5vw,2.2rem); color:var(--gold); margin-bottom:8px; }
+  .results-header p { color:var(--text-dim); font-style:italic; font-size:1rem; }
+
+  /* Beer card */
+  .beer-card { background:var(--dark2); border:1px solid rgba(200,151,58,.15); border-radius:2px; padding:0; margin-bottom:20px; position:relative; overflow:hidden; animation:slideIn .4s cubic-bezier(.4,0,.2,1) both; }
+  .beer-card:nth-child(2){animation-delay:.1s} .beer-card:nth-child(3){animation-delay:.2s}
+  .beer-card.gold-card   { border-color:rgba(200,151,58,.5); }
+  .beer-card.silver-card { border-color:rgba(192,192,192,.4); }
+  .beer-card.bronze-card { border-color:rgba(180,120,60,.4); }
+  .beer-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; z-index:2; }
+  .beer-card.gold-card::before   { background:linear-gradient(90deg,transparent,#C8973A,transparent); }
+  .beer-card.silver-card::before { background:linear-gradient(90deg,transparent,#C0C0C0,transparent); }
+  .beer-card.bronze-card::before { background:linear-gradient(90deg,transparent,#B4783C,transparent); }
+
+  .beer-card-top { display:flex; align-items:stretch; }
+  .beer-img-wrap { flex-shrink:0; width:110px; min-height:160px; background:rgba(0,0,0,.25); display:flex; align-items:center; justify-content:center; padding:16px 10px; border-right:1px solid rgba(200,151,58,.1); position:relative; overflow:hidden; }
+  .beer-img-wrap::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at center,rgba(200,151,58,.04) 0%,transparent 70%); }
+  .beer-img { width:72px; height:130px; object-fit:contain; display:block; filter:drop-shadow(0 4px 14px rgba(0,0,0,.6)); position:relative; z-index:1; transition:transform .3s ease; }
+  .beer-card:hover .beer-img { transform:scale(1.05) translateY(-2px); }
+  .beer-img-fallback { font-size:3.5rem; filter:drop-shadow(0 2px 8px rgba(0,0,0,.5)); position:relative; z-index:1; }
+  .beer-card-header { flex:1; padding:22px 22px 18px; display:flex; flex-direction:column; justify-content:center; }
+  .medal-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .medal { font-size:1.6rem; filter:drop-shadow(0 2px 6px rgba(0,0,0,.4)); }
+  .medal-label { font-size:.68rem; letter-spacing:.18em; text-transform:uppercase; opacity:.65; }
+  .beer-name { font-family:'Playfair Display',serif; font-size:clamp(1.05rem,3vw,1.35rem); font-weight:700; color:var(--cream); margin-bottom:8px; line-height:1.25; }
+  .beer-meta { display:flex; gap:12px; flex-wrap:wrap; }
+  .beer-tag { font-size:.78rem; color:var(--gold); letter-spacing:.05em; opacity:.85; }
+
+  /* Afinidad bar */
+  .affinity-wrap { padding:0 22px 14px; display:flex; align-items:center; gap:10px; }
+  .affinity-track { flex:1; height:3px; background:rgba(200,151,58,.15); border-radius:2px; }
+  .affinity-fill { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--amber),var(--gold)); transition:width 1s ease; }
+  .affinity-label { font-size:.72rem; color:var(--text-dim); letter-spacing:.08em; white-space:nowrap; }
+
+  .beer-why { font-size:1rem; color:var(--text); line-height:1.75; border-top:1px solid rgba(200,151,58,.1); padding:18px 22px 22px; }
+
+  /* Divider & closing */
+  .divider { text-align:center; margin:32px 0; color:var(--text-dim); font-size:.75rem; letter-spacing:.2em; text-transform:uppercase; }
+  .divider::before,.divider::after { content:'— '; }
+  .closing-note { text-align:center; padding:10px 20px 0; font-style:italic; color:var(--text-dim); font-size:1.05rem; line-height:1.7; }
+
+  /* Restart */
+  .restart-wrap { text-align:center; margin-top:36px; }
+  .btn-restart { background:transparent; border:1px solid rgba(200,151,58,.35); border-radius:2px; padding:14px 36px; color:var(--gold); font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; cursor:pointer; letter-spacing:.08em; transition:all .25s; }
+  .btn-restart:hover { background:rgba(200,151,58,.08); border-color:var(--gold); transform:translateY(-1px); }
+
+  @media(max-width:480px){
+    .question-card{padding:24px 20px} .beer-img-wrap{width:84px;min-height:130px}
+    .beer-img{width:58px;height:108px} .beer-card-header{padding:16px 14px 14px}
+    .beer-why{padding:14px 14px 16px} .affinity-wrap{padding:0 14px 14px}
+    .nav{flex-wrap:wrap} .btn-next{max-width:none}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <span class="header-icon">🍺</span>
+    <h1>El Sommelier<br>de Cervezas</h1>
+    <p>Encuentra tu cerveza perfecta en 8 preguntas</p>
+  </div>
+  <div id="app"></div>
+</div>
+<script>
+// ─────────────────────────────────────────
+// CATÁLOGO
+// ─────────────────────────────────────────
+const BEERS = [
+  {
+    name:"Estrella Galicia 1906 Reserva Especial", style:"Lager Premium", abv:"6.5%", emoji:"🍺",
+    img:"https://www.estrellagalicia.es/sites/default/files/styles/product_detail/public/product-images/1906_reserva_especial_33cl.png",
+    scores:{ bitterness:{none:1,little:3,much:1}, citrus:{yes:1,neutral:3,no:2}, sweetness:{sweet:1,balanced:3,dry:2}, body:{light:1,medium:3,full:2}, color:{pale:3,amber:1,dark:0}, alcohol:{low:1,any:3,high:2}, context:{refresh:2,savor:3,food:2} },
+    why:"La 1906 Reserva Especial es la joya de la corona de Estrella Galicia. Se elabora con una fermentación lenta a baja temperatura que le da una textura sedosa y un sabor profundo y limpio. Con 6.5% de alcohol, tiene más cuerpo que una lager convencional pero sin resultar pesada. En boca aparecen notas de malta ligeramente tostada, un amargor suave y equilibrado, y un final largo y refrescante. Una cerveza pensada para quienes valoran la calidad por encima de la cantidad.",
+  },
+  {
+    name:"Ámbar Export", style:"Lager Ámbar", abv:"5.2%", emoji:"🍺",
+    img:"https://www.cervezasambar.com/wp-content/uploads/2020/10/ambar-export-botella-33cl.png",
+    scores:{ bitterness:{none:2,little:3,much:1}, citrus:{yes:0,neutral:3,no:3}, sweetness:{sweet:3,balanced:2,dry:0}, body:{light:1,medium:3,full:2}, color:{pale:1,amber:3,dark:1}, alcohol:{low:2,any:3,high:1}, context:{refresh:2,savor:2,food:3} },
+    why:"La Ámbar Export es un orgullo aragonés con décadas de historia. Su color ámbar dorado ya avanza lo que el paladar va a encontrar: notas de caramelo y malta tostada, con un dulzor cálido que recuerda al pan recién horneado. El amargor es casi inexistente, lo que la convierte en una cerveza muy accesible. Su cuerpo redondo y su suavidad la hacen especialmente buena para acompañar comidas de cuchara, asados o tapas contundentes. Una cerveza honesta y sin pretensiones.",
+  },
+  {
+    name:"Alhambra Reserva 1925", style:"Lager Premium", abv:"6.4%", emoji:"🍺",
+    img:"https://www.cervezasalhambra.es/sites/default/files/2022-03/alhambra-reserva-1925-33cl.png",
+    scores:{ bitterness:{none:1,little:3,much:1}, citrus:{yes:1,neutral:3,no:2}, sweetness:{sweet:2,balanced:3,dry:1}, body:{light:1,medium:2,full:3}, color:{pale:2,amber:2,dark:1}, alcohol:{low:1,any:3,high:2}, context:{refresh:1,savor:3,food:2} },
+    why:"La Reserva 1925 es la cerveza más icónica de Granada. Se fermenta con lúpulo en flor —una técnica casi olvidada— lo que le aporta aromas florales y herbales únicos que no encontrarás en ninguna otra lager española. Con 6.4% y un cuerpo generoso, es una cerveza que pide atención: sirviéndola en copa ancha se liberan mejor sus aromas. En boca es redonda, con malta equilibrada y un final persistente. Ideal para beberla despacio, acompañada de buena conversación.",
+  },
+  {
+    name:"Mahou 5 Estrellas", style:"Lager", abv:"5.5%", emoji:"🍺",
+    img:"https://www.mahou.es/sites/default/files/styles/product_image/public/2021-04/mahou-5-estrellas-botella-33cl.png",
+    scores:{ bitterness:{none:2,little:3,much:0}, citrus:{yes:0,neutral:3,no:3}, sweetness:{sweet:2,balanced:3,dry:1}, body:{light:2,medium:3,full:1}, color:{pale:3,amber:1,dark:0}, alcohol:{low:2,any:3,high:1}, context:{refresh:3,savor:1,food:2} },
+    why:"La Mahou 5 Estrellas es la cerveza de Madrid por excelencia, y hay una razón por la que lleva décadas siendo la más vendida en la capital. Su fórmula es perfecta en su sencillez: color dorado brillante, espuma cremosa y persistente, amargor muy suave y un sabor limpio y refrescante que no cansa nunca. Con 5.5% tiene algo más de cuerpo que otras lagers sin llegar a ser pesada. Perfecta para tomar en terraza, con unas bravas o simplemente para aplacar el calor. La cerveza del pueblo.",
+  },
+  {
+    name:"Damm Inedit", style:"Witbier / Lager híbrida", abv:"4.8%", emoji:"🍺",
+    img:"https://www.damm.com/sites/default/files/styles/product_detail/public/2021-09/inedit-33cl-botella.png",
+    scores:{ bitterness:{none:3,little:2,much:0}, citrus:{yes:3,neutral:2,no:0}, sweetness:{sweet:3,balanced:2,dry:0}, body:{light:3,medium:2,full:0}, color:{pale:3,amber:1,dark:0}, alcohol:{low:3,any:2,high:0}, context:{refresh:3,savor:2,food:3} },
+    why:"La Inedit nació de la colaboración entre la cervecería Damm y el chef Ferran Adrià con un objetivo muy concreto: crear la cerveza perfecta para maridar con comida. El resultado es una mezcla única de cebada y trigo con especias como el cilantro y la piel de naranja, inspirada en las witbier belgas. Es la cerveza más gastronómica de todas las disponibles: ligera, suave, sin rastro de amargor, con aromas cítricos y un punto especiado que complementa desde mariscos hasta postres. Perfecta también para quienes se acercan por primera vez a la cerveza de autor.",
+  },
+  {
+    name:"Águila Sin Filtrar", style:"Lager sin filtrar", abv:"5.0%", emoji:"🍺",
+    img:"https://www.cervezaaguila.com/sites/default/files/product-images/aguila-sin-filtrar-33cl.png",
+    scores:{ bitterness:{none:2,little:3,much:1}, citrus:{yes:2,neutral:3,no:2}, sweetness:{sweet:1,balanced:3,dry:2}, body:{light:3,medium:2,full:0}, color:{pale:3,amber:1,dark:0}, alcohol:{low:3,any:2,high:0}, context:{refresh:3,savor:1,food:2} },
+    why:"A diferencia de la mayoría de cervezas industriales, el Águila Sin Filtrar no pasa por el proceso de filtrado, lo que significa que conserva las levaduras y proteínas naturales del proceso de fermentación. El resultado es una cerveza con un aspecto ligeramente turbio y dorado, y un sabor notablemente más rico y complejo que una lager convencional. En boca es ligera pero con textura, con notas de cereal fresco, levadura y un ligero toque frutal. Muy refrescante y más interesante de lo que aparenta ser.",
+  },
+  {
+    name:"Moritz 7", style:"Lager Fuerte", abv:"7.2%", emoji:"🍺",
+    img:"https://www.moritz.com/wp-content/uploads/2021/05/moritz-7-botella-33cl.png",
+    scores:{ bitterness:{none:1,little:2,much:3}, citrus:{yes:1,neutral:2,no:3}, sweetness:{sweet:2,balanced:2,dry:2}, body:{light:0,medium:2,full:3}, color:{pale:2,amber:3,dark:1}, alcohol:{low:0,any:2,high:3}, context:{refresh:1,savor:3,food:2} },
+    why:"La Moritz 7 es la versión sin límites de una cervecería barcelonesa que siempre ha apostado por hacer las cosas bien. Con un 7.2% de alcohol que se integra de forma elegante, esta lager fuerte tiene un cuerpo denso y envolvente con notas pronunciadas de malta caramelizada, un amargor más marcado que sus hermanas menores y un largo postgusto que no desaparece deprisa. No es una cerveza para apagar la sed: es para quienes quieren algo con carácter, sentarse y disfrutarla de verdad.",
+  },
+  {
+    name:"La Sagra IPA", style:"IPA", abv:"6.5%", emoji:"🌿",
+    img:"https://images.openfoodfacts.org/images/products/841/700/000/0033/front_es.3.400.jpg",
+    scores:{ bitterness:{none:0,little:1,much:3}, citrus:{yes:3,neutral:1,no:0}, sweetness:{sweet:0,balanced:1,dry:3}, body:{light:1,medium:3,full:1}, color:{pale:1,amber:3,dark:0}, alcohol:{low:0,any:2,high:3}, context:{refresh:1,savor:3,food:2} },
+    why:"La Sagra IPA es una de las IPAs artesanales españolas más reconocidas, elaborada en Toledo con una selección de lúpulos americanos que aportan una explosión aromática de pomelo, fruta tropical y resina de pino. En boca es seca y con un amargor pronunciado y limpio —el sello de identidad de las buenas IPAs— con apenas dulzor residual. Con un 6.5% bien camuflado por los aromas, es la cerveza ideal para quienes quieren dar el salto del mundo lager al mundo craft sin mirar atrás.",
+  },
+  {
+    name:"Chimay Azul", style:"Belgian Dark Strong Ale", abv:"9.0%", emoji:"🏔️",
+    img:"https://www.chimay.com/sites/default/files/styles/product_detail/public/2020-11/chimay-bleue-33cl.png",
+    scores:{ bitterness:{none:0,little:2,much:2}, citrus:{yes:0,neutral:2,no:3}, sweetness:{sweet:3,balanced:2,dry:0}, body:{light:0,medium:1,full:3}, color:{pale:0,amber:1,dark:3}, alcohol:{low:0,any:2,high:3}, context:{refresh:0,savor:3,food:2} },
+    why:"La Chimay Azul es elaborada por los monjes trapenses de la Abadía de Scourmont (Bélgica) desde 1948, y es una de las cervezas más complejas y respetadas del mundo. Con un 9% de alcohol y un color oscuro y profundo, ofrece una experiencia sensorial única: aromas de frutos secos, ciruela, especias y cuero, seguidos de una boca densa con notas de caramelo oscuro, chocolate y un toque ligeramente alcohólico que se integra perfectamente. Cada sorbo es diferente. No es una cerveza, es una meditación.",
+  },
+  {
+    name:"Westmalle Tripel", style:"Belgian Tripel", abv:"9.5%", emoji:"⛪",
+    img:"https://www.westmalle.be/sites/default/files/styles/product/public/products/westmalle-tripel-33cl.png",
+    scores:{ bitterness:{none:0,little:1,much:3}, citrus:{yes:3,neutral:2,no:0}, sweetness:{sweet:1,balanced:2,dry:3}, body:{light:0,medium:2,full:3}, color:{pale:3,amber:1,dark:0}, alcohol:{low:0,any:1,high:3}, context:{refresh:0,savor:3,food:1} },
+    why:"La Westmalle Tripel es considerada por muchos expertos la madre de todas las tripeles belgas: fue esta abadía quien definió el estilo en los años 30. Con un 9.5% que se esconde detrás de su color dorado brillante, es una trampa deliciosa para el paladar. La nariz ofrece aromas de pera, manzana, flores y especias de levadura; en boca es seca, efervescente y con un largo final amargo. Cada botella fermenta dos veces —una en la cuba y otra en la propia botella— lo que la hace viva y única. Para beberla en copa de tulipa, nunca de botella.",
+  },
+  {
+    name:"Duvel", style:"Belgian Strong Golden Ale", abv:"8.5%", emoji:"👿",
+    img:"https://www.duvel.com/sites/default/files/styles/product_detail/public/products/duvel-33cl-bottle.png",
+    scores:{ bitterness:{none:0,little:2,much:3}, citrus:{yes:2,neutral:2,no:1}, sweetness:{sweet:0,balanced:2,dry:3}, body:{light:0,medium:2,full:3}, color:{pale:3,amber:1,dark:0}, alcohol:{low:0,any:2,high:3}, context:{refresh:0,savor:3,food:1} },
+    why:"Duvel significa \"diablo\" en flamenco, y el nombre no es casual: esta cerveza belga dorada y aparentemente ligera esconde un 8.5% de alcohol con una elegancia que desconcierta. Fermentada a baja temperatura durante semanas y refermentada en botella, desarrolla una espuma densa y persistente y una carbonatación fina que la hace bailar en copa. Su sabor es seco, ligeramente amargo y con notas de pera y azúcar candi. Una de las cervezas más técnicas y sofisticadas del mundo, y sin embargo sorprendentemente fácil de beber. Con cuidado.",
+  },
+  {
+    name:"Weihenstephaner Hefe Weissbier", style:"Weissbier", abv:"5.4%", emoji:"🌾",
+    img:"https://www.weihenstephaner.de/fileadmin/user_upload/produkte/biere/hefe-weissbier/hefe-weissbier-flasche-500.png",
+    scores:{ bitterness:{none:3,little:2,much:0}, citrus:{yes:3,neutral:2,no:0}, sweetness:{sweet:3,balanced:2,dry:0}, body:{light:1,medium:3,full:1}, color:{pale:3,amber:1,dark:0}, alcohol:{low:2,any:3,high:1}, context:{refresh:3,savor:2,food:3} },
+    why:"La Weihenstephaner Hefe Weissbier proviene de la cervecería más antigua del mundo, fundada en el año 1040 en Baviera. Es la referencia mundial del estilo weissbier: turbia, dorada y coronada por una espuma generosa que huele a plátano y clavo de olor —aromas producidos por la levadura de trigo bávara. En boca es suave, cremosa y refrescante, sin nada de amargor, con un final especiado y afrutado. Perfecta fría en un día caluroso, con un bretzel, un carpaccio o simplemente sola. La cerveza de trigo que define el estilo.",
+  },
+  {
+    name:"Paulaner Hefe Weissbier", style:"Weissbier", abv:"5.5%", emoji:"🌾",
+    img:"https://www.paulaner.com/fileadmin/user_upload/Products/Beer/Hefe-Weissbier-Naturtrub/paulaner-hefe-weissbier-naturtrub-500ml-bottle.png",
+    scores:{ bitterness:{none:3,little:2,much:0}, citrus:{yes:3,neutral:2,no:0}, sweetness:{sweet:3,balanced:2,dry:0}, body:{light:1,medium:3,full:1}, color:{pale:3,amber:1,dark:0}, alcohol:{low:2,any:3,high:1}, context:{refresh:3,savor:2,food:3} },
+    why:"La Paulaner Hefe Weissbier es, junto a la Weihenstephaner, la cara más reconocible de la tradición cervecera de Munich. Su aspecto turbio y su color amarillo paja con reflejos dorados esconden una cerveza llena de vida: aromas de levadura fresca, plátano maduro, vainilla y un toque de cítrico. En boca es suave, con burbuja fina y un cuerpo ligero que la hace ideal para el aperitivo, para acompañar comida ligera o simplemente para refrescarse. Nunca defrauda. Una clásica entre las clásicas.",
+  },
+  {
+    name:"Guinness Draught", style:"Irish Dry Stout", abv:"4.2%", emoji:"🖤",
+    img:"https://www.guinness.com/media/2yqkzzzn/guinness-draught-bottle-330ml.png",
+    scores:{ bitterness:{none:0,little:1,much:3}, citrus:{yes:0,neutral:2,no:3}, sweetness:{sweet:1,balanced:2,dry:3}, body:{light:0,medium:1,full:3}, color:{pale:0,amber:0,dark:3}, alcohol:{low:3,any:2,high:0}, context:{refresh:1,savor:3,food:2} },
+    why:"La Guinness Draught es posiblemente la cerveza más reconocible del mundo, y merece ese reconocimiento. Con solo un 4.2% de alcohol, logra una presencia en boca absolutamente extraordinaria gracias a su nitrogenación: las burbujas de nitrógeno —más pequeñas que las del CO₂— crean esa textura cremosa y aterciopelada que es su sello de identidad. El sabor es complejo y seco, con notas evidentes de café tostado, cacao amargo y regaliz. Nada de dulzor, nada de amargor lupulado: solo malta oscura en estado puro. Una stout que convierte a escépticos.",
+  },
+  {
+    name:"BrewDog Punk IPA", style:"IPA", abv:"5.6%", emoji:"🤘",
+    img:"https://www.brewdog.com/images/products/punk-ipa-330ml-bottle.png",
+    scores:{ bitterness:{none:0,little:1,much:3}, citrus:{yes:3,neutral:1,no:0}, sweetness:{sweet:0,balanced:1,dry:3}, body:{light:1,medium:3,full:1}, color:{pale:1,amber:3,dark:0}, alcohol:{low:1,any:3,high:2}, context:{refresh:2,savor:3,food:2} },
+    why:"La BrewDog Punk IPA es la cerveza que popularizó la revolución craft en Europa. Desde Escocia, BrewDog desafió a la industria cervecera tradicional con esta IPA cargada de lúpulos americanos y neozelandeses que producen una avalancha aromática: mango, maracuyá, pomelo rosado y resina de pino. En boca es seca y con un amargor decidido pero no agresivo, con un 5.6% bien integrado. Es la cerveza perfecta para quien quiere entender qué puede llegar a oler y saber una cerveza cuando se elabora con ambición y sin límites.",
+  },
+];
+
+// ─────────────────────────────────────────
+// REFERENCIA LIBRE → bonus a ciertas cervezas
+// ─────────────────────────────────────────
+const REF_KEYWORDS = {
+  'mahou':['Mahou 5 Estrellas'], 'estrella':['Estrella Galicia 1906 Reserva Especial'],
+  'alhambra':['Alhambra Reserva 1925'], 'ambar':['Ámbar Export'], 'ámbar':['Ámbar Export'],
+  'moritz':['Moritz 7'], 'sagra':['La Sagra IPA'], 'ipa':['La Sagra IPA','BrewDog Punk IPA'],
+  'chimay':['Chimay Azul'], 'westmalle':['Westmalle Tripel'], 'duvel':['Duvel'],
+  'weihenstephaner':['Weihenstephaner Hefe Weissbier'],
+  'paulaner':['Paulaner Hefe Weissbier'],
+  'weiss':['Weihenstephaner Hefe Weissbier','Paulaner Hefe Weissbier'],
+  'trigo':['Weihenstephaner Hefe Weissbier','Paulaner Hefe Weissbier'],
+  'guinness':['Guinness Draught'], 'stout':['Guinness Draught'],
+  'negra':['Guinness Draught','Chimay Azul'],
+  'belga':['Chimay Azul','Westmalle Tripel','Duvel'],
+  'craft':['La Sagra IPA','BrewDog Punk IPA'], 'punk':['BrewDog Punk IPA'],
+  'brewdog':['BrewDog Punk IPA'], 'aguila':['Águila Sin Filtrar'], 'águila':['Águila Sin Filtrar'],
+  'damm':['Damm Inedit'], 'inedit':['Damm Inedit'],
+  'heineken':['Águila Sin Filtrar','Mahou 5 Estrellas'],
+  'san miguel':['Estrella Galicia 1906 Reserva Especial'],
+  'victoria':['Alhambra Reserva 1925'], 'voll':['Ámbar Export','Moritz 7'],
+};
+
+// ─────────────────────────────────────────
+// PREGUNTAS
+// ─────────────────────────────────────────
+const QUESTIONS = [
+  { id:'bitterness', number:'Pregunta 1 · Amargor', text:'¿Cómo llevas el amargor?', hint:'El amargor viene del lúpulo y es uno de los grandes rasgos de una cerveza',
+    options:[{value:'none',emoji:'😌',label:'Nada',sub:'Prefiero sabores suaves, sin picor en boca'},{value:'little',emoji:'🙂',label:'Poco',sub:'Me gusta algo, pero sin pasarse'},{value:'much',emoji:'😈',label:'Mucho',sub:'Cuanto más amarga, mejor'}]},
+  { id:'citrus', number:'Pregunta 2 · Aromas cítricos', text:'¿Te gustan los sabores cítricos o tropicales?', hint:'Como pomelo, mango, maracuyá… los lúpulos modernos pueden dar esas notas',
+    options:[{value:'yes',emoji:'🍋',label:'Sí, me encantan',sub:'Frescos y aromáticos'},{value:'neutral',emoji:'😐',label:'Me da igual',sub:'No es algo que busque'},{value:'no',emoji:'🙅',label:'No me van',sub:'Prefiero algo más clásico y neutro'}]},
+  { id:'sweetness', number:'Pregunta 3 · Malta y dulzor', text:'¿Prefieres sabores dulces y tostados, o secos y limpios?', hint:'La malta es el "pan" de la cerveza. Puede aportar caramelo, chocolate o ser muy neutra',
+    options:[{value:'sweet',emoji:'🍯',label:'Dulces y tostados',sub:'Caramelo, pan, chocolate'},{value:'balanced',emoji:'⚖️',label:'Un equilibrio',sub:'Ni muy dulce ni muy seca'},{value:'dry',emoji:'🏜️',label:'Seca y limpia',sub:'Sin dulzor, muy refrescante'}]},
+  { id:'body', number:'Pregunta 4 · Cuerpo', text:'¿La quieres ligera o con cuerpo?', hint:'El cuerpo es la sensación en boca: puede ser fina como agua o densa como un zumo',
+    options:[{value:'light',emoji:'🪶',label:'Ligera',sub:'Que baje sola, sin esfuerzo'},{value:'medium',emoji:'🌊',label:'Intermedia',sub:'Algo de textura pero no pesada'},{value:'full',emoji:'🏋️',label:'Con mucho cuerpo',sub:'Densa, que se note en boca'}]},
+  { id:'color', number:'Pregunta 5 · Color', text:'¿Claras o más oscuras?', hint:'El color da pistas sobre el sabor: claras suelen ser más ligeras, oscuras más complejas',
+    options:[{value:'pale',emoji:'☀️',label:'Claras y doradas',sub:'Rubias clásicas, refrescantes'},{value:'amber',emoji:'🌅',label:'Cobrizas o ámbar',sub:'Con algo más de personalidad'},{value:'dark',emoji:'🌑',label:'Oscuras',sub:'Negras o marrones, me gustan'}]},
+  { id:'alcohol', number:'Pregunta 6 · Alcohol', text:'¿Prefieres que sea suave en alcohol, o te da igual?', hint:'Las cervezas van de 4% hasta más de 9% de graduación',
+    options:[{value:'low',emoji:'🍵',label:'Suave (4-5%)',sub:'Para tomar tranquilamente'},{value:'any',emoji:'🤷',label:'Me da igual',sub:'No es algo que me importe'},{value:'high',emoji:'🔥',label:'Que tenga fuerza',sub:'Una cerveza con carácter'}]},
+  { id:'context', number:'Pregunta 7 · Momento', text:'¿Para qué la quieres?', hint:'No es lo mismo calmar la sed que sentarse a disfrutar una buena cerveza',
+    options:[{value:'refresh',emoji:'🌊',label:'Para refrescarme',sub:'Que baje fácil y sea refrescante'},{value:'savor',emoji:'🧐',label:'Para degustar',sub:'Me siento y la disfruto con calma'},{value:'food',emoji:'🍔',label:'Para acompañar comida',sub:'Que vaya bien con lo que como'}]},
+  { id:'experience', number:'Pregunta 8 · Referencia', text:'¿Hay alguna cerveza que ya sepas que te gusta mucho?', hint:'Puede ser cualquiera: Mahou, Heineken, Voll-Damm… Si no sabes, déjalo en blanco', type:'text', placeholder:'Ej: Mahou, Heineken, Voll-Damm, una Guinness…' },
+];
+
+// ─────────────────────────────────────────
+// MOTOR DE PUNTUACIÓN
+// ─────────────────────────────────────────
+function scoreBeers(answers) {
+  const keys = ['bitterness','citrus','sweetness','body','color','alcohol','context'];
+  return BEERS.map(beer => {
+    let score = 0, max = keys.length * 3;
+    keys.forEach(k => { if (answers[k]) score += (beer.scores[k][answers[k]] || 0); });
+    if (answers.experience && answers.experience.trim()) {
+      const ref = answers.experience.toLowerCase();
+      Object.entries(REF_KEYWORDS).forEach(([kw, names]) => {
+        if (ref.includes(kw) && names.includes(beer.name)) score += 4;
+      });
+      max += 4;
+    }
+    return { beer, score, pct: Math.round(score / max * 100) };
+  }).sort((a,b) => b.score - a.score);
+}
+
+// ─────────────────────────────────────────
+// ESTADO & RENDER
+// ─────────────────────────────────────────
+let currentQ = 0, answers = {};
+
+function render() {
+  const app = document.getElementById('app');
+  currentQ < QUESTIONS.length ? renderQuestion(app) : renderResults(app);
+}
+
+function renderQuestion(app) {
+  const q = QUESTIONS[currentQ];
+  const isText = q.type === 'text';
+  const pct = (currentQ / QUESTIONS.length) * 100;
+  app.innerHTML = `
+    <div class="progress-container">
+      <div class="progress-info">
+        <span class="progress-label">Tu perfil cervecero</span>
+        <span class="progress-count">${currentQ+1} / ${QUESTIONS.length}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="question-card">
+      <div class="question-number">${q.number}</div>
+      <div class="question-text">${q.text}</div>
+      <div class="question-hint">${q.hint}</div>
+      ${isText
+        ? `<input type="text" class="text-input" id="textAnswer" placeholder="${q.placeholder}" value="${answers[q.id]||''}" oninput="answers['${q.id}']=this.value" onkeydown="if(event.key==='Enter')advanceText()">`
+        : `<div class="options">${q.options.map(o=>`
+            <button class="option-btn ${answers[q.id]===o.value?'selected':''}" onclick="selectAndAdvance('${q.id}','${o.value}',this)">
+              <span class="option-emoji">${o.emoji}</span>
+              <span class="option-text"><span class="option-label">${o.label}</span><span class="option-sub">${o.sub}</span></span>
+            </button>`).join('')}</div>`
+      }
+    </div>
+    <div class="nav">
+      ${currentQ>0 ? `<button class="btn-back" onclick="prevQ()">← Anterior</button>` : `<span></span>`}
+      ${isText ? `<button class="btn-next" onclick="advanceText()">Ver mi recomendación 🍺</button>` : ''}
+    </div>`;
+  if (isText) setTimeout(()=>document.getElementById('textAnswer')?.focus(),80);
+}
+
+function selectAndAdvance(qId, val, btn) {
+  answers[qId] = val;
+  document.querySelectorAll('.option-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  // Small delay so the user sees the selection before moving on
+  setTimeout(() => {
+    currentQ++;
+    window.scrollTo({top:0,behavior:'smooth'});
+    render();
+  }, 300);
+}
+
+function advanceText(){
+  if(answers.experience && !answers.experience.trim()) delete answers.experience;
+  currentQ++;
+  window.scrollTo({top:0,behavior:'smooth'});
+  render();
+}
+
+function prevQ(){ if(currentQ>0){currentQ--;window.scrollTo({top:0,behavior:'smooth'});render();} }
+
+function renderResults(app){
+  const ranked = scoreBeers(answers);
+  const top3   = ranked.slice(0,3);
+  const medals = [
+    {medal:'🥇',label:'Oro · Tu mejor opción',      cls:'gold-card'},
+    {medal:'🥈',label:'Plata · Excelente alternativa',cls:'silver-card'},
+    {medal:'🥉',label:'Bronce · Para explorar',      cls:'bronze-card'},
+  ];
+  app.innerHTML = `
+    <div class="results">
+      <div class="results-header">
+        <h2>Tu selección personal</h2>
+        <p>Basado en tu perfil, el sommelier recomienda…</p>
+      </div>
+      ${top3.map((item,i)=>`
+        <div class="beer-card ${medals[i].cls}">
+          <div class="beer-card-top">
+            <div class="beer-img-wrap">
+              ${item.beer.img
+                ? `<img class="beer-img" src="${item.beer.img}" alt="${item.beer.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="beer-img-fallback" style="display:none">${item.beer.emoji}</span>`
+                : `<span class="beer-img-fallback">${item.beer.emoji}</span>`}
+            </div>
+            <div class="beer-card-header">
+              <div class="medal-row">
+                <span class="medal">${medals[i].medal}</span>
+                <span class="medal-label">${medals[i].label}</span>
+              </div>
+              <div class="beer-name">${item.beer.name}</div>
+              <div class="beer-meta">
+                <span class="beer-tag">🍺 ${item.beer.style}</span>
+                <span class="beer-tag">🔢 ${item.beer.abv} vol.</span>
+              </div>
+            </div>
+          </div>
+          <div class="affinity-wrap">
+            <div class="affinity-track"><div class="affinity-fill" style="width:${item.pct}%"></div></div>
+            <span class="affinity-label">Afinidad ${item.pct}%</span>
+          </div>
+          <div class="beer-why">${item.beer.why}</div>
+        </div>
+      `).join('')}
+      <div class="divider">el sommelier dice</div>
+      <div class="closing-note">"${closingNote(answers,top3[0].beer)}"</div>
+      <div class="restart-wrap">
+        <button class="btn-restart" onclick="restart()">🔄 Empezar de nuevo</button>
+      </div>
+    </div>`;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function closingNote(a, topBeer){
+  if(a.context==='refresh') return "Nada mejor que una buena cerveza fría para refrescarse. ¡Que la disfrutes!";
+  if(a.context==='food')    return "Una buena cerveza eleva cualquier comida. ¡Buen provecho!";
+  if(a.bitterness==='much') return "Los que aprecian el amargor son los verdaderos entendidos. ¡Salud!";
+  if(a.alcohol==='high')    return "Las mejores cervezas del mundo son fuertes y complejas. Tómatela con calma. ¡Salud!";
+  if(a.color==='dark')      return "Las cervezas oscuras son las más incomprendidas. Hoy vas a descubrir por qué merecen la pena.";
+  return "La cerveza perfecta es la que disfrutas con quien quieres. ¡Salud!";
+}
+
+function restart(){ currentQ=0; answers={}; window.scrollTo({top:0,behavior:'smooth'}); render(); }
+
+render();
+</script>
+</body>
+</html>
